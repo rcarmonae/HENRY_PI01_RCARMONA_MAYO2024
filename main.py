@@ -2,13 +2,13 @@ from fastapi import FastAPI
 import requests
 import pandas as pd
 import ast
-
+from io import BytesIO
 
 ########## 1. OBTENCIÓN DE LOS DATASETS #############
 '''URL a los datos en Github '''
-horas_jugadas_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/blob/f44880a6abff8d46fd5a624f6a1be2c6fcbb2b73/DATASETS/F01_PlaytimeGenre.parquet'
-horas_jugadas_usuario_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/blob/main/DATASETS/F02_UserForGenre.parquet'
-game_reviews_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/blob/main/DATASETS/F03_UsersRecommend.parquet'
+horas_jugadas_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/raw/main/DATASETS/F01_PlaytimeGenre.parquet'
+horas_jugadas_usuario_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/raw/main/DATASETS/F02_UserForGenre.parquet'
+game_reviews_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO2024/raw/main/DATASETS/F03_UsersRecommend.parquet'
 
 
 '''Solicita el contenido de las URL'''
@@ -18,10 +18,9 @@ res_game_reviews = requests.get(game_reviews_parquet)
 
 
 '''Convierte los csv a dataframe'''
-horas_jugadas = pd.read_parquet(res_horas_jugadas)
-horas_jugadas_usuario = pd.read_parquet(res_horas_jugadas_usuario)
-game_reviews = pd.read_parquet(res_game_reviews)
-
+horas_jugadas = pd.read_parquet(BytesIO(res_horas_jugadas.content))
+horas_jugadas_usuario = pd.read_parquet(BytesIO(res_horas_jugadas_usuario.content))
+game_reviews = pd.read_parquet(BytesIO(res_game_reviews.content))
 ########## 2. DESARROLLO API: DISPONIBILIZAR LOS DATOS USANDO FastAPI #############
 app = FastAPI()
 @app.get('/')
