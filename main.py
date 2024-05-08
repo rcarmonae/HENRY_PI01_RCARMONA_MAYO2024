@@ -108,12 +108,14 @@ def UsersRecommend(year : int):
     return final_message
 
 @app.get('/recomendacion_juego/{item_id}')
-def recomendacion_juego(item_id : int):
-    '''Devuelve 5 recomendaciones de videojuegos con base en el genero, año y reseñas de usuarios'''
+def recommend_games(item_id):
     global df  # Utiliza el DataFrame global
-    # Formatea la columna de géneros para que se lean como listas
+
+    # Asegúrate de que los géneros estén correctamente formateados como listas
     if isinstance(df.loc[0, 'genres'], str):
         df['genres'] = df['genres'].apply(eval)
+
+    #print("Columnas en df antes de cualquier operación:", df.columns)
 
     try:
         game_info = df[df['item_id'] == item_id].iloc[0]
@@ -124,16 +126,20 @@ def recomendacion_juego(item_id : int):
     genre_encoded = mlb.fit_transform(df['genres'])
     genre_df = pd.DataFrame(genre_encoded, columns=mlb.classes_, index=df.index)
 
-    features = pd.concat([df[['sentiment_analysis', 'recommend', 'release_year']], genre_df], axis=1)
+    features = pd.concat([df[['item_id', 'sentiment_analysis', 'recommend', 'release_year']], genre_df], axis=1)
     features.dropna(inplace=True)
 
+    #print("Columnas en features después de crearlo:", features.columns)
+
     # Eliminar duplicados para asegurar que cada juego es único
-    features = features[~df['item_id'].duplicated(keep='first')]
+    features = features[~features['item_id'].duplicated(keep='first')]
+
+    #print("Columnas en features después de eliminar duplicados:", features.columns)
 
     # Almacenar los índices antes de eliminar el juego dado para posterior referencia
     valid_indices = features.index
 
-    target_features = features.loc[df['item_id'] == item_id]
+    target_features = features.loc[features['item_id'] == item_id]
     features = features.drop(index=target_features.index)
 
     # Calcular la similitud del coseno entre el juego dado y todos los otros juegos
@@ -146,4 +152,8 @@ def recomendacion_juego(item_id : int):
     # Asegurar que las recomendaciones sean juegos únicos
     valid_df = valid_df.groupby('item_id').max('similarity_score')
 
-    return valid_df.nlargest(5, 'similarity_score')
+    # Ordenar y seleccionar los top 5 juegos más similares
+    top_games = valid_df.nlargest(5, 'similarity_score')
+
+    # Devolver solo los item_id de los juegos recomendados como una lista
+    return {f"Los ID de los videojuegos reocmendados son: {top_games.index.tolist()}"}
