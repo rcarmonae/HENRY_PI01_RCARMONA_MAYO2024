@@ -17,7 +17,7 @@ game_reviews_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO202
 res_horas_jugadas = requests.get(horas_jugadas_parquet)
 res_horas_jugadas_usuario = requests.get(horas_jugadas_usuario_parquet)
 res_game_reviews = requests.get(game_reviews_parquet)
-df = requests.get(game_reviews_parquet)
+
 
 '''Convierte los parquet a dataframe'''
 horas_jugadas = pd.read_parquet(BytesIO(res_horas_jugadas.content))
@@ -107,7 +107,7 @@ def UsersRecommend(year : int):
    
     return final_message
 
-@app.get('/recomendacion_juego/{item_id}')
+@app.get('/recommend_games/{item_id}')
 def recommend_games(item_id):
     # global df  # Utiliza el DataFrame global
 
