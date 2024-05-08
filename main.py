@@ -75,12 +75,12 @@ def UserForGenre(genero :str):
     return {f"Usuario con más horas jugadas para el género {genero}: {user_most_played}, Horas jugadas: [{formatted_string}]"}
 
 @app.get('/UserRecommend/{año}')
-def UsersRecommend(año : int):
+def UsersRecommend(year : int):
     '''Devuelve el top 3 de juegos MÁS recomendados por usuarios para el año dado. (reviews.recommend = True y comentarios positivos/neutrales)'''
     
     # Filtrar el DataFrame por año, recomendación positiva y sentimientos positivos/neutrales
     filtered_df = game_reviews[
-        (game_reviews['release_year'] == año) & 
+        (game_reviews['release_year'] == year) & 
         (game_reviews['recommend'] == True) & 
         (game_reviews['sentiment_analysis'] >= 1)
     ]
