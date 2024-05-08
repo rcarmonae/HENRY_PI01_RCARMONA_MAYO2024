@@ -17,12 +17,15 @@ game_reviews_parquet = 'https://github.com/rcarmonae/HENRY_PI01_RCARMONA_MAYO202
 res_horas_jugadas = requests.get(horas_jugadas_parquet)
 res_horas_jugadas_usuario = requests.get(horas_jugadas_usuario_parquet)
 res_game_reviews = requests.get(game_reviews_parquet)
-
+df = requests.get(game_reviews_parquet)
 
 '''Convierte los csv a dataframe'''
 horas_jugadas = pd.read_parquet(BytesIO(res_horas_jugadas.content))
 horas_jugadas_usuario = pd.read_parquet(BytesIO(res_horas_jugadas_usuario.content))
 game_reviews = pd.read_parquet(BytesIO(res_game_reviews.content))
+df = pd.read_parquet(BytesIO(res_game_reviews.content))
+
+
 ########## 2. DESARROLLO API: DISPONIBILIZAR LOS DATOS USANDO FastAPI #############
 app = FastAPI()
 @app.get('/')
@@ -107,7 +110,6 @@ def UsersRecommend(year : int):
 @app.get('/recomendacion_juego/{item_id}')
 def recomendacion_juego(item_id : int):
     global df  # Utiliza el DataFrame global
-    df = game_reviews
     df['item_id'] = df['item_id'].astype(int)
 
     
