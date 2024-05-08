@@ -109,9 +109,9 @@ def UsersRecommend(year : int):
 
 @app.get('/recomendacion_juego/{item_id}')
 def recommend_games(item_id):
-    global df  # Utiliza el DataFrame global
+    # global df  # Utiliza el DataFrame global
 
-    # Asegúrate de que los géneros estén correctamente formateados como listas
+    # La columna de generos se formatea como listas
     if isinstance(df.loc[0, 'genres'], str):
         df['genres'] = df['genres'].apply(eval)
 
