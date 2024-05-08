@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 import ast
 from io import BytesIO
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import MultiLabelBinarizer
 
 ########## 1. OBTENCIÓN DE LOS DATASETS #############
 '''URL a los datos en Github '''
@@ -101,3 +103,48 @@ def UsersRecommend(year : int):
     final_message = f"[Puesto 1: {top_game_titles.loc[0,'title']}, Puesto 2: {top_game_titles.loc[1,'title']}, Puesto 3: {top_game_titles.loc[2,'title']}]"
    
     return final_message
+
+@app.get('/recomendacion_juego/{item_id}')
+def recomendacion_juego(item_id : int):
+    # Supongamos que 'df' es el DataFrame global que contiene la información de los juegos
+    df = game_reviews
+    df['item_id'] = df['item_id'].astype(int)
+
+    #global df  # Utiliza el DataFrame global
+
+    # Formatea la columna de géneros para que se lean como listas
+    if isinstance(df.loc[0, 'genres'], str):
+        df['genres'] = df['genres'].apply(eval)
+
+    try:
+        game_info = df[df['item_id'] == item_id].iloc[0]
+    except IndexError:
+        return "No se encontró el juego con el item_id proporcionado."
+
+    mlb = MultiLabelBinarizer()
+    genre_encoded = mlb.fit_transform(df['genres'])
+    genre_df = pd.DataFrame(genre_encoded, columns=mlb.classes_, index=df.index)
+
+    features = pd.concat([df[['sentiment_analysis', 'recommend', 'release_year']], genre_df], axis=1)
+    features.dropna(inplace=True)
+
+    # Eliminar duplicados para asegurar que cada juego es único
+    features = features[~df['item_id'].duplicated(keep='first')]
+
+    # Almacenar los índices antes de eliminar el juego dado para posterior referencia
+    valid_indices = features.index
+
+    target_features = features.loc[df['item_id'] == item_id]
+    features = features.drop(index=target_features.index)
+
+    # Calcular la similitud del coseno entre el juego dado y todos los otros juegos
+    cosine_sim = cosine_similarity(features, target_features)
+
+    # Asignar los puntajes de similitud al DataFrame que solo contiene los índices válidos
+    valid_df = df.loc[valid_indices].drop(index=target_features.index)
+    valid_df['similarity_score'] = cosine_sim[:, 0]
+
+    # Asegurar que las recomendaciones sean juegos únicos
+    valid_df = valid_df.groupby('item_id').max('similarity_score')
+
+    return valid_df.nlargest(5, 'similarity_score')
