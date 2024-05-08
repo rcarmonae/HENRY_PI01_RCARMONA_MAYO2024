@@ -19,12 +19,12 @@ res_horas_jugadas_usuario = requests.get(horas_jugadas_usuario_parquet)
 res_game_reviews = requests.get(game_reviews_parquet)
 df = requests.get(game_reviews_parquet)
 
-'''Convierte los csv a dataframe'''
+'''Convierte los parquet a dataframe'''
 horas_jugadas = pd.read_parquet(BytesIO(res_horas_jugadas.content))
 horas_jugadas_usuario = pd.read_parquet(BytesIO(res_horas_jugadas_usuario.content))
 game_reviews = pd.read_parquet(BytesIO(res_game_reviews.content))
 df = pd.read_parquet(BytesIO(res_game_reviews.content))
-
+df['item_id'] = df['item_id'].astype(int)
 
 ########## 2. DESARROLLO API: DISPONIBILIZAR LOS DATOS USANDO FastAPI #############
 app = FastAPI()
@@ -109,10 +109,8 @@ def UsersRecommend(year : int):
 
 @app.get('/recomendacion_juego/{item_id}')
 def recomendacion_juego(item_id : int):
-    global df  # Utiliza el DataFrame global
+    #global df  # Utiliza el DataFrame global
     df['item_id'] = df['item_id'].astype(int)
-
-    
 
     # Formatea la columna de géneros para que se lean como listas
     if isinstance(df.loc[0, 'genres'], str):
