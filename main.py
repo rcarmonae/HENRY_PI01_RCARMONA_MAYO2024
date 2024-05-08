@@ -109,9 +109,8 @@ def UsersRecommend(year : int):
 
 @app.get('/recomendacion_juego/{item_id}')
 def recomendacion_juego(item_id : int):
-    #global df  # Utiliza el DataFrame global
-    df['item_id'] = df['item_id'].astype(int)
-
+    '''Devuelve 5 recomendaciones de videojuegos con base en el genero, año y reseñas de usuarios'''
+    global df  # Utiliza el DataFrame global
     # Formatea la columna de géneros para que se lean como listas
     if isinstance(df.loc[0, 'genres'], str):
         df['genres'] = df['genres'].apply(eval)
